@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeilãoMaster Pro | Paulo de Tarso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+
+        .main-wrapper { width: 100%; max-width: 650px; }
+
+        .calculator-card { background: var(--card); border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid var(--border); }
+
+        .header-section { padding: 30px 40px 10px 40px; text-align: center; }
+        .header-section h1 { font-weight: 800; font-size: 1.5rem; color: var(--primary); letter-spacing: -0.5px; }
+        .header-section p { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
+
+        .tabs-nav { display: flex; background: #f1f5f9; padding: 6px; margin: 20px 40px; border-radius: 14px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 10px; font-size: 0.9rem; }
+        .tab-btn.active { background: white; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .content { padding: 0 40px 40px 40px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--text-muted); letter-spacing: 0.5px; }
+        
+        .input-wrapper { position: relative; }
+        .input-wrapper span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: #94a3b8; font-size: 0.85rem; }
+        
+        input { width: 100%; padding: 14px 14px 14px 44px; border: 1.5px solid #eef2f6; border-radius: 12px; font-size: 1rem; outline: none; background: #fcfdfe; font-weight: 500; }
+        input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08); }
+
+        .btn-container { display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 0.95rem; min-width: 150px; }
+        .btn-primary { background: var(--accent); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); }
+        .btn-success { background: var(--success); color: white; margin-top: 10px; width: 100%; flex: none; }
+        .btn-outline { background: #f8fafc; color: var(--text-muted); border: 1.5px solid var(--border); }
+        .btn-outline:hover { background: #fff; color: var(--danger); border-color: #fecaca; }
+
+        .result-card { background: #f8fafc; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .res-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #edf2f7; }
+        .res-row:last-child { border: none; }
+        .res-row span:first-child { color: var(--text-muted); font-size: 0.85rem; }
+        .res-row span:last-child { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
+
+        .profit-display { text-align: center; margin-top: 25px; }
+        .profit-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .profit-value { font-size: 2rem; font-weight: 800; color: var(--success); letter-spacing: -1px; margin: 5px 0; }
+        
+        .badge-group { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 0.75rem; }
+        .badge-roi { background: #dcfce7; color: #166534; }
+        .badge-yield { background: #dbeafe; color: #1e40af; }
+        .badge-ir { background: #fee2e2; color: #991b1b; }
+
+        .footer-credits { text-align: center; margin-top: 20px; font-size: 0.7rem; color: #cbd5e1; letter-spacing: 1px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="calculator-card">
+        <div class="header-section">
+            <h1>LeilãoMaster Pro</h1>
+            <p>Análise de Viabilidade Imobiliária</p>
+        </div>
+
+        <div class="tabs-nav">
+            <button class="tab-btn active" id="tab-input-btn" onclick="showTab('input')">Simulação</button>
+            <button class="tab-btn" id="tab-result-btn" onclick="showTab('result')">Relatório</button>
+        </div>
+
+        <div class="content">
+            <div id="input-tab" class="tab-content active">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Venda Estimada (Mercado)</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_mercado" class="money" placeholder="0,00"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Lance de Arremate</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_lance" class="money" placeholder="0,00"></div>
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Comissão Leiloeiro (%)</label>
+                        <div class="input-wrapper"><span>%</span><input type="number" id="p_leiloeiro" value="5" style="padding-left: 35px;"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>ITBI (%)</label>
+                        <div class="input-wrapper"><span>%</span><input type="number" id="p_itbi" value="3" style="padding-left: 35px;"></div>
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Reformas</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_reforma" class="money" value="0,00"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Desocupação</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_desocupacao" class="money" value="0,00"></div>
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Condomínio e IPTU (Atraso)</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_dividas" class="money" value="0,00"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Documentação / Registro</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_doc" class="money" value="0,00"></div>
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Advocacia</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_adv" class="money" value="0,00"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Aluguel Estimado Mensal</label>
+                        <div class="input-wrapper"><span>R$</span><input type="text" id="v_aluguel" class="money" value="0,00"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Outros Custos Extras</label>
+                    <div class="input-wrapper"><span>R$</span><input type="text" id="v_outros" class="money" value="0,00"></div>
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn btn-outline" onclick="limpar()">Limpar</button>
+                    <button class="btn btn-primary" onclick="calcular()">Gerar Análise</button>
+                </div>
+            </div>
+
+            <div id="result-tab" class="tab-content">
+                <div class="result-card">
+                    <div class="res-row"><span>Comissão Leiloeiro</span> <span id="res_leiloeiro">R$ 0,00</span></div>
+                    <div class="res-row"><span>ITBI</span> <span id="res_itbi">R$ 0,00</span></div>
+                    <div class="res-row"><span>Documentação / Registro</span> <span id="res_doc">R$ 0,00</span></div>
+                    <div class="res-row"><span>Advocacia</span> <span id="res_adv">R$ 0,00</span></div>
+                    <div class="res-row"><span>Reformas</span> <span id="res_reforma">R$ 0,00</span></div>
+                    <div class="res-row"><span>Desocupação</span> <span id="res_desocup">R$ 0,00</span></div>
+                    <div class="res-row"><span>Dívidas (Cond/IPTU)</span> <span id="res_dividas">R$ 0,00</span></div>
+                    <div class="res-row"><span>Outros Custos</span> <span id="res_outros">R$ 0,00</span></div>
+                    <div class="res-row" style="background: #fee2e244;"><span>Imposto de Renda (Venda)</span> <span id="res_ir" style="color:var(--danger)">R$ 0,00</span></div>
+                    
+                    <div class="res-row" style="border-top: 2px solid #e2e8f0; margin-top: 10px; padding-top: 15px;">
+                        <span style="color: var(--primary); font-weight: 800;">INVESTIMENTO TOTAL</span> 
+                        <span id="res_total" style="color: var(--accent); font-size: 1.1rem;">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="profit-display">
+                    <div class="profit-label">Lucro Líquido Real (Pós-IR)</div>
+                    <div class="profit-value" id="res_lucro">R$ 0,00</div>
+                    <div class="badge-group">
+                        <span id="res_roi" class="badge badge-roi">ROI: 0%</span>
+                        <span id="res_yield" class="badge badge-yield">YIELD: 0% a.m.</span>
+                        <span id="res_ir_percent" class="badge badge-ir">Aliq. IR: 15%</span>
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn btn-outline" onclick="showTab('input')">← Ajustar</button>
+                    <button class="btn btn-primary" style="background: var(--success);" onclick="gerarPDF()">Baixar PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-credits">Created by Paulo de Tarso</div>
+</div>
+
+<script>
+    document.querySelectorAll('.money').forEach(input => {
+        input.addEventListener('input', e => {
+            let value = e.target.value.replace(/\D/g, "");
+            value = (value / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            e.target.value = value === "0,00" ? "" : value;
+        });
+    });
+
+    function parseMoney(text) {
+        if (!text) return 0;
+        return parseFloat(text.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    function formatar(v) {
+        return v.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+    }
+
+    function showTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabName + '-tab').classList.add('active');
+        document.getElementById('tab-' + tabName + '-btn').classList.add('active');
+    }
+
+    function calcularIR(lucro) {
+        if (lucro <= 0) return { valor: 0, aliq: 15 };
+        if (lucro <= 5000000) return { valor: lucro * 0.15, aliq: 15 };
+        if (lucro <= 10000000) return { valor: 750000 + (lucro - 5000000) * 0.175, aliq: 17.5 };
+        if (lucro <= 30000000) return { valor: 1625000 + (lucro - 10000000) * 0.20, aliq: 20 };
+        return { valor: 5625000 + (lucro - 30000000) * 0.225, aliq: 22.5 };
+    }
+
+    function calcular() {
+        const vMercado = parseMoney(document.getElementById('v_mercado').value);
+        const vLance = parseMoney(document.getElementById('v_lance').value);
+        if(vMercado === 0 || vLance === 0) { alert("Preencha Mercado e Lance."); return; }
+
+        const pLeiloeiro = (parseFloat(document.getElementById('p_leiloeiro').value) || 0) / 100;
+        const pItbi = (parseFloat(document.getElementById('p_itbi').value) || 0) / 100;
+        
+        const valLeiloeiro = vLance * pLeiloeiro;
+        const valItbi = vLance * pItbi;
+        const valDoc = parseMoney(document.getElementById('v_doc').value);
+        const valAdv = parseMoney(document.getElementById('v_adv').value);
+        const valReforma = parseMoney(document.getElementById('v_reforma').value);
+        const valDesocup = parseMoney(document.getElementById('v_desocupacao').value);
+        const valDividas = parseMoney(document.getElementById('v_dividas').value);
+        const valOutros = parseMoney(document.getElementById('v_outros').value);
+        const valAluguel = parseMoney(document.getElementById('v_aluguel').value);
+
+        // No Brasil, custos de aquisição e benfeitorias aumentam o custo do bem (reduzindo o lucro tributável)
+        const custoAquisicaoTotal = vLance + valLeiloeiro + valItbi + valDoc + valAdv + valReforma + valDesocup + valDividas + valOutros;
+        const lucroBruto = vMercado - custoAquisicaoTotal;
+        
+        const resIR = calcularIR(lucroBruto);
+        const lucroLiquido = lucroBruto - resIR.valor;
+        const roi = (lucroLiquido / custoAquisicaoTotal) * 100;
+        const yieldMensal = (valAluguel / custoAquisicaoTotal) * 100;
+
+        // Atualizar Tela
+        document.getElementById('res_leiloeiro').innerText = formatar(valLeiloeiro);
+        document.getElementById('res_itbi').innerText = formatar(valItbi);
+        document.getElementById('res_doc').innerText = formatar(valDoc);
+        document.getElementById('res_adv').innerText = formatar(valAdv);
+        document.getElementById('res_reforma').innerText = formatar(valReforma);
+        document.getElementById('res_desocup').innerText = formatar(valDesocup);
+        document.getElementById('res_dividas').innerText = formatar(valDividas);
+        document.getElementById('res_outros').innerText = formatar(valOutros);
+        document.getElementById('res_ir').innerText = formatar(resIR.valor);
+        document.getElementById('res_total').innerText = formatar(custoAquisicaoTotal);
+        document.getElementById('res_lucro').innerText = formatar(lucroLiquido);
+        document.getElementById('res_roi').innerText = `ROI: ${roi.toFixed(1)}%`;
+        document.getElementById('res_yield').innerText = `YIELD: ${yieldMensal.toFixed(2)}% a.m.`;
+        document.getElementById('res_ir_percent').innerText = `Aliq. IR: ${resIR.aliq}%`;
+
+        showTab('result');
+    }
+
+    function limpar() {
+        document.querySelectorAll('input').forEach(i => {
+            if(i.id === 'p_itbi') i.value = 3;
+            else if(i.id === 'p_leiloeiro') i.value = 5;
+            else i.value = "";
+        });
+        showTab('input');
+    }
+
+    async function gerarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("Relatório de Viabilidade - LeilãoMaster Pro", 20, 20);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Consultor: Paulo de Tarso | Gerado em: " + new Date().toLocaleString('pt-BR'), 20, 28);
+
+        const rows = [
+            ["Valor de Mercado (Venda)", "R$ " + document.getElementById('v_mercado').value],
+            ["Lance de Arremate", "R$ " + document.getElementById('v_lance').value],
+            ["Comissão Leiloeiro", document.getElementById('res_leiloeiro').innerText],
+            ["ITBI", document.getElementById('res_itbi').innerText],
+            ["Documentação / Registro", document.getElementById('res_doc').innerText],
+            ["Advocacia", document.getElementById('res_adv').innerText],
+            ["Reformas", document.getElementById('res_reforma').innerText],
+            ["Desocupação", document.getElementById('res_desocup').innerText],
+            ["Dívidas (Cond/IPTU)", document.getElementById('res_dividas').innerText],
+            ["Outros Custos", document.getElementById('res_outros').innerText],
+            ["IMPOSTO DE RENDA (VENDA)", document.getElementById('res_ir').innerText],
+            ["----------------------------------", "-----------------------"],
+            ["INVESTIMENTO TOTAL", document.getElementById('res_total').innerText],
+            ["LUCRO LÍQUIDO FINAL", document.getElementById('res_lucro').innerText],
+            ["ROI ESTIMADO", document.getElementById('res_roi').innerText],
+            ["YIELD MENSAL (ALUGUEL)", document.getElementById('res_yield').innerText]
+        ];
+
+        doc.autoTable({
+            startY: 35,
+            head: [["Descrição", "Valor"]],
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42] },
+            columnStyles: { 1: { halign: 'right' } }
+        });
+
+        doc.save(`Analise_Leilao_Master.pdf`);
+    }
+</script>
+</body>
+</html>
